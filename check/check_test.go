@@ -66,6 +66,26 @@ func TestWithDebug(t *testing.T) {
 	assert.True(t, c.debug)
 }
 
+func TestInvalidPath(t *testing.T) {
+	s := mockServer(200, "", http.Header{})
+	defer s.Close()
+
+	c := NewCheck(s.Client(), s.URL+"xxx")
+	c.AssertStatusCodeIn([]uint16{200})
+	err := c.Run()
+	assert.NotNil(t, err)
+}
+
+func TestInvalidUrl(t *testing.T) {
+	s := mockServer(200, "", http.Header{})
+	defer s.Close()
+
+	c := NewCheck(s.Client(), s.URL[1:])
+	c.AssertStatusCodeIn([]uint16{200})
+	err := c.Run()
+	assert.NotNil(t, err)
+}
+
 func mockServer(status int, body string, headers http.Header) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		for n, v := range headers {
