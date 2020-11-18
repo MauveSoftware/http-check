@@ -12,7 +12,7 @@ type mock struct {
 }
 
 func TestValidReponse(t *testing.T) {
-	s := mockServer(200, "this is a valid reponse", http.Header{
+	s := mockServer(200, "this is a valid response", http.Header{
 		"X-Test":  []string{"foo"},
 		"X-Test2": []string{"bar"},
 	})
