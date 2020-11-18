@@ -18,7 +18,7 @@ func TestValidReponse(t *testing.T) {
 	})
 	defer s.Close()
 
-	c := NewCheck(s.Client(), s.URL)
+	c := NewCheck(s.Client(), s.URL, WithDebug())
 	c.AssertStatusCodeIn([]uint16{200})
 	c.AssertBodyContains("valid")
 	c.AssertHeaderExists("X-Test2", "bar")
