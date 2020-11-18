@@ -55,6 +55,17 @@ func TestInvalidBody(t *testing.T) {
 	assert.EqualError(t, err, "String 'Mauve' not found in body")
 }
 
+func TestWithBasicAuth(t *testing.T) {
+	c := NewCheck(http.DefaultClient, "www.mauve.de", WithBasicAuth("foo", "bar"))
+	assert.Equal(t, c.username, "foo", "username")
+	assert.Equal(t, c.password, "bar", "password")
+}
+
+func TestWithDebug(t *testing.T) {
+	c := NewCheck(http.DefaultClient, "www.mauve.de", WithDebug())
+	assert.True(t, c.debug)
+}
+
 func mockServer(status int, body string, headers http.Header) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		for n, v := range headers {
