@@ -1,3 +1,6 @@
+[![Codecov](https://codecov.io/gh/MauveSoftware/http-check/branch/master/graph/badge.svg)](https://codecov.io/gh/MauveSoftware/http-check)
+[![Go ReportCard](http://goreportcard.com/badge/MauveSoftware/http-check)](http://goreportcard.com/report/MauveSoftware/http-check)
+
 # http-check
 Easy to use http(s) check for nagios/icinga
 
