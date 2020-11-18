@@ -6,5 +6,6 @@ jobs:
     steps:
       - checkout
 
+      - run: go build
       - run: go test -v -cover -coverprofile=coverage.txt ./...
       - run: bash <(curl -s https://codecov.io/bash)
