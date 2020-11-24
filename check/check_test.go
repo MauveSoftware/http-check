@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,6 +34,22 @@ func TestInvalidStausCode(t *testing.T) {
 	c.AssertStatusCodeIn([]uint16{200})
 	err := c.Run()
 	assert.EqualError(t, err, "Unexpected status code: 404 Not Found (expected: [200])")
+}
+
+func TestTimeoutHandling(t *testing.T) {
+	s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		time.Sleep(10 * time.Millisecond)
+		rw.WriteHeader(200)
+		rw.Write([]byte{})
+	}))
+	defer s.Close()
+
+	cl := s.Client()
+	cl.Timeout = time.Millisecond * 1
+
+	c := NewCheck(cl, s.URL)
+	err := c.Run()
+	assert.EqualError(t, err, "Timeout exceeded (1ms)")
 }
 
 func TestMissingHeader(t *testing.T) {

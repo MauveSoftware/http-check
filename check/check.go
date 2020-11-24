@@ -65,6 +65,10 @@ func (c *Check) Run() error {
 
 	resp, err := c.client.Do(req)
 	if err != nil {
+		if strings.Contains(err.Error(), "Timeout") {
+			return fmt.Errorf("Timeout exceeded (%v)", c.client.Timeout)
+		}
+
 		return err
 	}
 	defer resp.Body.Close()
