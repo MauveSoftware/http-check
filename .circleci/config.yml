@@ -6,6 +6,15 @@ jobs:
     steps:
       - checkout
 
-      - run: go build
-      - run: go test -v -cover -coverprofile=coverage.txt ./...
+      - run: 
+          name: build client
+          command: go build
+          working_directory: cmd/http-check
+      - run: 
+          name: build server
+          command: go build
+          working_directory: cmd/http-check-server
+      - run: 
+          name: run tests
+          command: go test -v -cover -coverprofile=coverage.txt ./...
       - run: bash <(curl -s https://codecov.io/bash)
