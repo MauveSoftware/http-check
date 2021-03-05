@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package pb;
+
+message Request {
+    string protocol = 1;
+    string host = 2;
+    string path = 3;
+    string username = 4;
+    string password = 5;
+    repeated uint32 expected_status_code = 6;
+    string expected_body = 7;
+    bool debug = 8;
+}
+
+message Response {
+    bool success = 1;
+    string message = 2;
+    string debug_message = 3;
+}
+
+service HttpCheckService {
+    rpc Check(Request) returns (Response) {}
+}

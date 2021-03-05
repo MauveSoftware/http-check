@@ -3,6 +3,7 @@ package check
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -19,8 +20,8 @@ func TestValidReponse(t *testing.T) {
 	})
 	defer s.Close()
 
-	c := NewCheck(s.Client(), s.URL, WithDebug())
-	c.AssertStatusCodeIn([]uint16{200})
+	c := NewCheck(s.Client(), s.URL, WithDebug(os.Stdout))
+	c.AssertStatusCodeIn([]uint32{200})
 	c.AssertBodyContains("valid")
 	c.AssertHeaderExists("X-Test2", "bar")
 	assert.Nil(t, c.Run())
@@ -31,7 +32,7 @@ func TestInvalidStausCode(t *testing.T) {
 	defer s.Close()
 
 	c := NewCheck(s.Client(), s.URL)
-	c.AssertStatusCodeIn([]uint16{200})
+	c.AssertStatusCodeIn([]uint32{200})
 	err := c.Run()
 	assert.EqualError(t, err, "Unexpected status code: 404 Not Found (expected: [200])")
 }
@@ -79,7 +80,7 @@ func TestWithBasicAuth(t *testing.T) {
 }
 
 func TestWithDebug(t *testing.T) {
-	c := NewCheck(http.DefaultClient, "www.mauve.de", WithDebug())
+	c := NewCheck(http.DefaultClient, "www.mauve.de", WithDebug(os.Stdout))
 	assert.True(t, c.debug)
 }
 
@@ -88,7 +89,7 @@ func TestInvalidPath(t *testing.T) {
 	defer s.Close()
 
 	c := NewCheck(s.Client(), s.URL+"xxx")
-	c.AssertStatusCodeIn([]uint16{200})
+	c.AssertStatusCodeIn([]uint32{200})
 	err := c.Run()
 	assert.NotNil(t, err)
 }
@@ -98,7 +99,7 @@ func TestInvalidUrl(t *testing.T) {
 	defer s.Close()
 
 	c := NewCheck(s.Client(), s.URL[1:])
-	c.AssertStatusCodeIn([]uint16{200})
+	c.AssertStatusCodeIn([]uint32{200})
 	err := c.Run()
 	assert.NotNil(t, err)
 }

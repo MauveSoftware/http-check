@@ -2,9 +2,9 @@ package check
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -22,20 +22,22 @@ func WithBasicAuth(username, password string) Option {
 }
 
 // WithDebug enables debug output
-func WithDebug() Option {
+func WithDebug(w io.Writer) Option {
 	return func(c *Check) {
 		c.debug = true
+		c.debugWriter = w
 	}
 }
 
 // Check executes a web request and validates the response against a set of defined assertions
 type Check struct {
-	client     *http.Client
-	url        string
-	username   string
-	password   string
-	assertions []assertion
-	debug      bool
+	client      *http.Client
+	url         string
+	username    string
+	password    string
+	assertions  []assertion
+	debug       bool
+	debugWriter io.Writer
 }
 
 type assertion func(*http.Response) error
@@ -74,19 +76,19 @@ func (c *Check) Run() error {
 	defer resp.Body.Close()
 
 	if c.debug {
-		fmt.Println("Status: " + resp.Status)
-		resp.Header.Write(os.Stdout)
-		fmt.Println("")
+		fmt.Fprintln(c.debugWriter, "Status: "+resp.Status)
+		resp.Header.Write(c.debugWriter)
+		fmt.Fprintln(c.debugWriter, "")
 	}
 
 	return c.validate(resp)
 }
 
 // AssertStatusCodeIn tests if status code is in expected range
-func (c *Check) AssertStatusCodeIn(codes []uint16) {
+func (c *Check) AssertStatusCodeIn(codes []uint32) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
 		for _, c := range codes {
-			if uint16(resp.StatusCode) == c {
+			if uint32(resp.StatusCode) == c {
 				return nil
 			}
 		}

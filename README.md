@@ -5,12 +5,28 @@
 # http-check
 Easy to use http(s) check for nagios/icinga
 
+http-check is a distributed application consisting of a server and and a client component. The client requets a check from the server. The server processes the check, validates the result und returns it to the client.
+
 ## Install
+
+### Client
 ```
-go get -u github.com/MauveSoftware/http-check
+go get -u github.com/MauveSoftware/http-check/cmd/http-check
 ```
 
-## Usage
+### Server
+```
+go get -u github.com/MauveSoftware/http-check/cmd/http-check-server
+```
+
+## Run the server
+```
+./http-check-server
+```
+
+After starting the server listens for connections from the client on a unix socket (default: ``/tmp/http-check.sock``).
+
+## Client usage
 In this example we check if our homepage is available and if the closing body is present
 
 ```

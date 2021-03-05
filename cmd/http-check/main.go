@@ -1,17 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
+	"net"
 	"os"
 	"time"
 
-	"github.com/MauveSoftware/http-check/check"
+	"github.com/MauveSoftware/http-check/pb"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
-	version = "0.1.1"
+	version = "0.2.0"
 )
 
 var (
@@ -22,9 +25,9 @@ var (
 	path               = kingpin.Flag("path", "Path to use for the request").String()
 	username           = kingpin.Flag("username", "Username to use for authentication").Short('u').String()
 	password           = kingpin.Flag("password", "Password to use for authentication").Short('p').String()
-	expectedStatusCode = kingpin.Flag("expect-status", "List of expected status codes").Short('s').Uint16List()
+	expectedStatusCode = kingpin.Flag("expect-status", "List of expected status codes").Short('s').Uint32List()
 	expectedBody       = kingpin.Flag("expect-body-string", "Expected string in response body").Short('b').String()
-	timeout            = kingpin.Flag("timeout", "Timeout after a connection attempt will be cancelled").Default("10s").Duration()
+	socketPath         = kingpin.Flag("socket-path", "Socket to use to communicate with the server performing the check").Default("/tmp/http-check.sock").String()
 )
 
 func main() {
@@ -39,37 +42,49 @@ func main() {
 }
 
 func runCheck() {
-	opts := []check.Option{}
-
-	if len(*username) > 0 {
-		opts = append(opts, check.WithBasicAuth(*username, *password))
-	}
-
-	if *verbose {
-		opts = append(opts, check.WithDebug())
-	}
-
-	url := fmt.Sprintf("%s://%s%s", *protocol, *host, *path)
-	cl := &http.Client{}
-	cl.Timeout = *timeout
-	c := check.NewCheck(cl, url, opts...)
-
-	if len(*expectedStatusCode) > 0 {
-		c.AssertStatusCodeIn(*expectedStatusCode)
-	}
-
-	if len(*expectedBody) > 0 {
-		c.AssertBodyContains(*expectedBody)
-	}
-
-	start := time.Now()
-	err := c.Run()
+	conn, err := grpc.Dial(
+		*socketPath,
+		grpc.WithInsecure(),
+		grpc.WithDialer(func(addr string, timeout time.Duration) (net.Conn, error) {
+			return net.DialTimeout("unix", addr, timeout)
+		}))
 	if err != nil {
-		fmt.Println("CRITICAL - " + err.Error())
-		os.Exit(2)
+		logrus.Fatal(err)
+	}
+	defer conn.Close()
+
+	c := pb.NewHttpCheckServiceClient(conn)
+
+	req := &pb.Request{
+		Protocol:           *protocol,
+		Host:               *host,
+		Path:               *path,
+		Username:           *username,
+		Password:           *password,
+		ExpectedStatusCode: *expectedStatusCode,
+		ExpectedBody:       *expectedBody,
+		Debug:              *verbose,
+	}
+	resp, err := c.Check(context.Background(), req)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
-	fmt.Println("OK - Request took", time.Since(start))
+	exitCode := 0
+	status := "OK"
+
+	if !resp.Success {
+		status = "CRITICAL"
+		exitCode = 1
+	}
+
+	fmt.Printf("%s - %s\n", status, resp.Message)
+
+	if len(resp.DebugMessage) > 0 {
+		fmt.Println(resp.DebugMessage)
+	}
+
+	os.Exit(exitCode)
 }
 
 func printVersion() {
