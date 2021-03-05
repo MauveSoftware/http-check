@@ -38,7 +38,7 @@ func main() {
 
 	lis, err := openSocket()
 	if err != nil {
-
+		logrus.Fatal(err)
 	}
 	defer lis.Close()
 
