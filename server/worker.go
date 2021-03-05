@@ -31,7 +31,7 @@ func (w *worker) run() {
 }
 
 func (w *worker) processRequest(req *pb.Request) *pb.Response {
-	logrus.Infof("#%d: Prcessing check for %s", w.id, req.Host)
+	logrus.Infof("#%d: Processing check for %s", w.id, req.Host)
 	out := &strings.Builder{}
 	c := w.checkForRequest(req, out)
 
