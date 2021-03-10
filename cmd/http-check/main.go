@@ -75,7 +75,7 @@ func runCheck() {
 
 	if !resp.Success {
 		status = "CRITICAL"
-		exitCode = 1
+		exitCode = 2
 	}
 
 	fmt.Printf("%s - %s\n", status, resp.Message)
