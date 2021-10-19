@@ -1,4 +1,3 @@
-[![CircleCI](https://circleci.com/gh/MauveSoftware/http-check.svg?style=shield)](https://circleci.com/gh/MauveSoftware/http-check)
 [![codecov](https://codecov.io/gh/MauveSoftware/http-check/branch/main/graph/badge.svg)](https://codecov.io/gh/MauveSoftware/http-check)
 [![Go ReportCard](http://goreportcard.com/badge/MauveSoftware/http-check)](http://goreportcard.com/report/MauveSoftware/http-check)
 
