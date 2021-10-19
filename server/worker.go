@@ -75,5 +75,9 @@ func (w *worker) checkForRequest(req *pb.Request, out io.Writer) *check.Check {
 		c.AssertBodyContains(req.ExpectedBody)
 	}
 
+	if req.CertExpireDays > 0 {
+		c.AssertCertificateExpireDays(time.Duration(req.CertExpireDays) * 24 * time.Hour)
+	}
+
 	return c
 }

@@ -1,6 +1,9 @@
 package check
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -102,6 +105,45 @@ func TestInvalidUrl(t *testing.T) {
 	c.AssertStatusCodeIn([]uint32{200})
 	err := c.Run()
 	assert.NotNil(t, err)
+}
+
+func TestAssertCertificateExpireDaysWithoutCert(t *testing.T) {
+	c := NewCheck(nil, "")
+	c.AssertStatusCodeIn([]uint32{200})
+
+	resp := &http.Response{
+		StatusCode: http.StatusOK,
+	}
+	resp.TLS = &tls.ConnectionState{}
+
+	c.AssertCertificateExpireDays(30 * 24 * time.Hour)
+	err := c.validate(resp)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), "No certificate returned")
+}
+
+func TestAssertCertificateExpireDaysWithSoonExpiringCert(t *testing.T) {
+	c := NewCheck(nil, "")
+	c.AssertStatusCodeIn([]uint32{200})
+
+	resp := &http.Response{
+		StatusCode: http.StatusOK,
+	}
+	notAfter := time.Now().Add(10 * time.Minute)
+	resp.TLS = &tls.ConnectionState{
+		PeerCertificates: []*x509.Certificate{
+			{
+				NotAfter: notAfter,
+			},
+		},
+	}
+
+	c.AssertCertificateExpireDays(30 * 24 * time.Hour)
+	err := c.validate(resp)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), fmt.Sprintf("Certificate expires on %v", notAfter))
 }
 
 func mockServer(status int, body string, headers http.Header) *httptest.Server {

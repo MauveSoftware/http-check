@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -119,6 +120,23 @@ func (c *Check) AssertBodyContains(s string) {
 
 		if !strings.Contains(string(b), s) {
 			return fmt.Errorf("String '%s' not found in body", s)
+		}
+
+		return nil
+	})
+}
+
+// AssertCertificateExpireDays tests the days until expiration of the returned certificate
+func (c *Check) AssertCertificateExpireDays(d time.Duration) {
+	c.assertions = append(c.assertions, func(resp *http.Response) error {
+		if resp.TLS == nil || len(resp.TLS.PeerCertificates) == 0 {
+			return fmt.Errorf("No certificate returned")
+		}
+
+		first := resp.TLS.PeerCertificates[0]
+		min := time.Now().Add(d)
+		if !first.NotAfter.After(min) {
+			return fmt.Errorf("Certificate expires on %v", first.NotAfter)
 		}
 
 		return nil
