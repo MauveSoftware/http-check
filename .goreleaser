@@ -3,7 +3,7 @@ before:
    hooks:
      - go mod download
 builds:
-  - dir: ./cmd/http-check
+  - main: ./cmd/http-check
     env:
     - CGO_ENABLED=0
     goos:
@@ -19,7 +19,7 @@ builds:
       goarch: arm64
     ldflags: -s -w -X main.version={{.Version}}
     binary: http-check
-  - dir: ./cmd/http-check-server
+  - main: ./cmd/http-check-server
     env:
     - CGO_ENABLED=0
     goos:
