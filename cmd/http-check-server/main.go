@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/MauveSoftware/http-check/pb"
-	"github.com/MauveSoftware/http-check/server"
+	"github.com/MauveSoftware/http-check/pkg/server"
 	"github.com/sirupsen/logrus"
 
 	"google.golang.org/grpc"

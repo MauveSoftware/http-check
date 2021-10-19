@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MauveSoftware/http-check/check"
 	"github.com/MauveSoftware/http-check/pb"
+	"github.com/MauveSoftware/http-check/pkg/check"
 	"github.com/sirupsen/logrus"
 )
 
