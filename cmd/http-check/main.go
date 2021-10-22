@@ -30,6 +30,7 @@ var (
 	expectedBodyRegex  = kingpin.Flag("expect-body-regex", "Expected regex matching string in response body").Short('r').String()
 	certExpireDays     = kingpin.Flag("cert-min-expire-days", "Minimum number of days until certificate expiration").Uint32()
 	socketPath         = kingpin.Flag("socket-path", "Socket to use to communicate with the server performing the check").Default("/tmp/http-check.sock").String()
+	insecure           = kingpin.Flag("insecure", "Allow invalid TLS certificaets (e.g. self signed)").Default("false").Bool()
 )
 
 func main() {
@@ -68,6 +69,7 @@ func runCheck() {
 		ExpectedBodyRegex:  *expectedBodyRegex,
 		CertExpireDays:     *certExpireDays,
 		Debug:              *verbose,
+		Insecure:           *insecure,
 	}
 	resp, err := c.Check(context.Background(), req)
 	if err != nil {

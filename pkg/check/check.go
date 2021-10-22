@@ -31,6 +31,12 @@ func WithDebug(w io.Writer) Option {
 	}
 }
 
+func WithInsecure() Option {
+	return func(c *Check) {
+		c.insecure = true
+	}
+}
+
 // Check executes a web request and validates the response against a set of defined assertions
 type Check struct {
 	client      *http.Client
@@ -39,6 +45,7 @@ type Check struct {
 	password    string
 	assertions  []assertion
 	debug       bool
+	insecure    bool
 	debugWriter io.Writer
 }
 

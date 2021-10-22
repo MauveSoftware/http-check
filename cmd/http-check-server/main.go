@@ -24,7 +24,8 @@ const (
 var (
 	showVersion = kingpin.Flag("version", "Show version info").Bool()
 	workerCount = kingpin.Flag("worker-count", "Number of workers processing http checks in parallel").Default("25").Uint32()
-	timeout     = kingpin.Flag("timeout", "Timeout after a connection attempt will be cancelled").Default("10s").Duration()
+	timeout     = kingpin.Flag("timeout", "Request timeout").Default("10s").Duration()
+	tlsTimeout  = kingpin.Flag("tls-timeout", "TLS connect timeout").Default("1s").Duration()
 	socketPath  = kingpin.Flag("socket-path", "Socket to create to listen for check requests").Default("/tmp/http-check.sock").String()
 )
 
@@ -44,7 +45,7 @@ func main() {
 
 	srv := grpc.NewServer()
 	logrus.Infof("Starting %d workers", *workerCount)
-	s := server.New(*workerCount, server.WithTimeout(*timeout))
+	s := server.New(*workerCount, *timeout, *tlsTimeout)
 	pb.RegisterHttpCheckServiceServer(srv, s)
 
 	logrus.Infof("Listen for connections on socket %s", *socketPath)

@@ -18,9 +18,10 @@ type task struct {
 }
 
 type worker struct {
-	id int
-	cl *http.Client
-	ch chan *task
+	id         int
+	cl         *http.Client
+	insecureCl *http.Client
+	ch         chan *task
 }
 
 func (w *worker) run() {
@@ -64,8 +65,18 @@ func (w *worker) checkForRequest(req *pb.Request, out io.Writer) *check.Check {
 		opts = append(opts, check.WithDebug(out))
 	}
 
+	if req.Insecure {
+		opts = append(opts, check.WithInsecure())
+	}
+
 	url := fmt.Sprintf("%s://%s%s", req.Protocol, req.Host, req.Path)
-	c := check.NewCheck(w.cl, url, opts...)
+
+	cl := w.cl
+	if req.Insecure {
+		cl = w.insecureCl
+	}
+
+	c := check.NewCheck(cl, url, opts...)
 
 	if len(req.ExpectedStatusCode) > 0 {
 		c.AssertStatusCodeIn(req.ExpectedStatusCode)

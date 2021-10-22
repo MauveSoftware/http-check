@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"net"
 	"net/http"
 	"time"
 
@@ -10,32 +12,21 @@ import (
 
 // HTTPCheckServer runs HTTP checks. It provides an gRPC interface to receive check tasks
 type HTTPCheckServer struct {
-	cl          *http.Client
 	workerCount uint32
+	reqTimeout  time.Duration
+	tlsTimeout  time.Duration
 	ch          chan *task
 }
 
-// Option specifies options for the server
-type Option func(*HTTPCheckServer)
-
-// WithTimeout specifies the timeout for each HTTP request
-func WithTimeout(t time.Duration) Option {
-	return func(s *HTTPCheckServer) {
-		s.cl.Timeout = t
-	}
-}
-
 // New creates a new server instance
-func New(workerCount uint32, opts ...Option) *HTTPCheckServer {
+func New(workerCount uint32, reqTimeout, tlsTimeout time.Duration) *HTTPCheckServer {
 	s := &HTTPCheckServer{
-		cl:          &http.Client{},
 		workerCount: workerCount,
+		reqTimeout:  reqTimeout,
+		tlsTimeout:  tlsTimeout,
 		ch:          make(chan *task),
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
 	s.startWorkers()
 
 	return s
@@ -44,11 +35,28 @@ func New(workerCount uint32, opts ...Option) *HTTPCheckServer {
 func (s *HTTPCheckServer) startWorkers() {
 	for i := 0; i < int(s.workerCount); i++ {
 		w := &worker{
-			id: i + 1,
-			cl: s.cl,
-			ch: s.ch,
+			id:         i + 1,
+			cl:         s.newHttpClient(false),
+			insecureCl: s.newHttpClient(true),
+			ch:         s.ch,
 		}
 		go w.run()
+	}
+}
+
+func (s *HTTPCheckServer) newHttpClient(insecure bool) *http.Client {
+	var tr = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: s.reqTimeout,
+		}).Dial,
+		TLSHandshakeTimeout: s.tlsTimeout,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: insecure,
+		},
+	}
+
+	return &http.Client{
+		Transport: tr,
 	}
 }
 

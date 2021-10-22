@@ -13,6 +13,7 @@ message Request {
     string expected_body_regex = 8;
     uint32 cert_expire_days = 9;
     bool debug = 10;
+    bool insecure = 11;
 }
 
 message Response {
