@@ -76,6 +76,36 @@ func TestInvalidBody(t *testing.T) {
 	assert.EqualError(t, err, "String 'Mauve' not found in body")
 }
 
+func TestInvalidBodyWithRegex(t *testing.T) {
+	s := mockServer(200, "123456", http.Header{})
+	defer s.Close()
+
+	c := NewCheck(s.Client(), s.URL)
+	c.AssertBodyMatches("^\\d{5}$")
+	err := c.Run()
+	assert.EqualError(t, err, "Regex '^\\d{5}$' does not match body")
+}
+
+func TestValidBodyWithRegex(t *testing.T) {
+	s := mockServer(200, "12345", http.Header{})
+	defer s.Close()
+
+	c := NewCheck(s.Client(), s.URL)
+	c.AssertBodyMatches("^\\d{5}$")
+	err := c.Run()
+	assert.Nil(t, err)
+}
+
+func TestInvalidRegex(t *testing.T) {
+	s := mockServer(200, "12345", http.Header{})
+	defer s.Close()
+
+	c := NewCheck(s.Client(), s.URL)
+	c.AssertBodyMatches("[0-9]++")
+	err := c.Run()
+	assert.NotNil(t, err)
+}
+
 func TestWithBasicAuth(t *testing.T) {
 	c := NewCheck(http.DefaultClient, "www.mauve.de", WithBasicAuth("foo", "bar"))
 	assert.Equal(t, c.username, "foo", "username")

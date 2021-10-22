@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version = "0.3.0"
+	version = "0.3.1"
 )
 
 var (
@@ -27,6 +27,7 @@ var (
 	password           = kingpin.Flag("password", "Password to use for authentication").Short('p').String()
 	expectedStatusCode = kingpin.Flag("expect-status", "List of expected status codes").Short('s').Uint32List()
 	expectedBody       = kingpin.Flag("expect-body-string", "Expected string in response body").Short('b').String()
+	expectedBodyRegex  = kingpin.Flag("expect-body-regex", "Expected regex matching string in response body").Short('r').String()
 	certExpireDays     = kingpin.Flag("cert-min-expire-days", "Minimum number of days until certificate expiration").Uint32()
 	socketPath         = kingpin.Flag("socket-path", "Socket to use to communicate with the server performing the check").Default("/tmp/http-check.sock").String()
 )
@@ -64,6 +65,7 @@ func runCheck() {
 		Password:           *password,
 		ExpectedStatusCode: *expectedStatusCode,
 		ExpectedBody:       *expectedBody,
+		ExpectedBodyRegex:  *expectedBodyRegex,
 		CertExpireDays:     *certExpireDays,
 		Debug:              *verbose,
 	}

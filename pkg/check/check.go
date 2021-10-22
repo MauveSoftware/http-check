@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -120,6 +121,27 @@ func (c *Check) AssertBodyContains(s string) {
 
 		if !strings.Contains(string(b), s) {
 			return fmt.Errorf("String '%s' not found in body", s)
+		}
+
+		return nil
+	})
+}
+
+// AssertBodyMatches tests if the body matches the specified regex
+func (c *Check) AssertBodyMatches(regex string) {
+	c.assertions = append(c.assertions, func(resp *http.Response) error {
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return errors.Wrap(err, "Could not read body")
+		}
+
+		r, err := regexp.Compile(regex)
+		if err != nil {
+			return errors.Wrap(err, "Invalid regex")
+		}
+
+		if !r.Match(b) {
+			return fmt.Errorf("Regex '%s' does not match body", regex)
 		}
 
 		return nil

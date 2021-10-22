@@ -10,8 +10,9 @@ message Request {
     string password = 5;
     repeated uint32 expected_status_code = 6;
     string expected_body = 7;
-    uint32 cert_expire_days = 8;
-    bool debug = 9;
+    string expected_body_regex = 8;
+    uint32 cert_expire_days = 9;
+    bool debug = 10;
 }
 
 message Response {
