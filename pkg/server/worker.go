@@ -65,10 +65,6 @@ func (w *worker) checkForRequest(req *pb.Request, out io.Writer) *check.Check {
 		opts = append(opts, check.WithDebug(out))
 	}
 
-	if req.Insecure {
-		opts = append(opts, check.WithInsecure())
-	}
-
 	url := fmt.Sprintf("%s://%s%s", req.Protocol, req.Host, req.Path)
 
 	cl := w.cl
