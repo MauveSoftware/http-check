@@ -47,7 +47,8 @@ func (s *HTTPCheckServer) startWorkers() {
 func (s *HTTPCheckServer) newHttpClient(insecure bool) *http.Client {
 	var tr = &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout: s.reqTimeout,
+			Timeout:       s.reqTimeout,
+			FallbackDelay: 100 * time.Microsecond,
 		}).Dial,
 		TLSHandshakeTimeout: s.tlsTimeout,
 		TLSClientConfig: &tls.Config{
