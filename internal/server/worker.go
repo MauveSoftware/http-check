@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MauveSoftware/http-check/pb"
+	"github.com/MauveSoftware/http-check/internal/api"
 	"github.com/MauveSoftware/http-check/pkg/check"
 	"github.com/sirupsen/logrus"
 )
 
 type task struct {
-	req *pb.Request
-	ch  chan<- *pb.Response
+	req *api.Request
+	ch  chan<- *api.Response
 }
 
 type worker struct {
@@ -31,7 +31,7 @@ func (w *worker) run() {
 	}
 }
 
-func (w *worker) processRequest(req *pb.Request) *pb.Response {
+func (w *worker) processRequest(req *api.Request) *api.Response {
 	logrus.Infof("#%d: Processing check for %s", w.id, req.Host)
 	out := &strings.Builder{}
 	c := w.checkForRequest(req, out)
@@ -40,21 +40,21 @@ func (w *worker) processRequest(req *pb.Request) *pb.Response {
 	err := c.Run()
 
 	if err != nil {
-		return &pb.Response{
+		return &api.Response{
 			Success:      false,
 			Message:      err.Error(),
 			DebugMessage: out.String(),
 		}
 	}
 
-	return &pb.Response{
+	return &api.Response{
 		Success:      true,
 		Message:      fmt.Sprintf("Request took %v", time.Since(start)),
 		DebugMessage: out.String(),
 	}
 }
 
-func (w *worker) checkForRequest(req *pb.Request, out io.Writer) *check.Check {
+func (w *worker) checkForRequest(req *api.Request, out io.Writer) *check.Check {
 	opts := []check.Option{}
 
 	if len(req.Username) > 0 {

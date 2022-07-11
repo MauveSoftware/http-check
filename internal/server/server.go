@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/MauveSoftware/http-check/pb"
+	"github.com/MauveSoftware/http-check/internal/api"
 )
 
 // HTTPCheckServer runs HTTP checks. It provides an gRPC interface to receive check tasks
@@ -48,7 +48,7 @@ func (s *HTTPCheckServer) newHttpClient(insecure bool) *http.Client {
 	var tr = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:       s.reqTimeout,
-			FallbackDelay: 100 * time.Microsecond,
+			FallbackDelay: 100 * time.Millisecond,
 		}).Dial,
 		TLSHandshakeTimeout: s.tlsTimeout,
 		TLSClientConfig: &tls.Config{
@@ -62,8 +62,8 @@ func (s *HTTPCheckServer) newHttpClient(insecure bool) *http.Client {
 }
 
 // Check performs a http check and returns the check result
-func (s *HTTPCheckServer) Check(ctx context.Context, in *pb.Request) (*pb.Response, error) {
-	respCh := make(chan *pb.Response, 1)
+func (s *HTTPCheckServer) Check(ctx context.Context, in *api.Request) (*api.Response, error) {
+	respCh := make(chan *api.Response, 1)
 	s.ch <- &task{
 		req: in,
 		ch:  respCh,

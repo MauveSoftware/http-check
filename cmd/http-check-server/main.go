@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/MauveSoftware/http-check/pb"
-	"github.com/MauveSoftware/http-check/pkg/server"
+	"github.com/MauveSoftware/http-check/internal/api"
+	"github.com/MauveSoftware/http-check/internal/server"
 	"github.com/sirupsen/logrus"
 
 	"google.golang.org/grpc"
@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	version = "0.3.2"
+	version = "0.3.3"
 )
 
 var (
@@ -46,7 +46,7 @@ func main() {
 	srv := grpc.NewServer()
 	logrus.Infof("Starting %d workers", *workerCount)
 	s := server.New(*workerCount, *timeout, *tlsTimeout)
-	pb.RegisterHttpCheckServiceServer(srv, s)
+	api.RegisterHttpCheckServiceServer(srv, s)
 
 	logrus.Infof("Listen for connections on socket %s", *socketPath)
 	go logrus.Error(srv.Serve(lis))

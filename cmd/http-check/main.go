@@ -7,14 +7,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/MauveSoftware/http-check/pb"
+	"github.com/MauveSoftware/http-check/internal/api"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
-	version = "0.3.1"
+	version = "0.3.2"
 )
 
 var (
@@ -56,9 +56,9 @@ func runCheck() {
 	}
 	defer conn.Close()
 
-	c := pb.NewHttpCheckServiceClient(conn)
+	c := api.NewHttpCheckServiceClient(conn)
 
-	req := &pb.Request{
+	req := &api.Request{
 		Protocol:           *protocol,
 		Host:               *host,
 		Path:               *path,

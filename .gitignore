@@ -1,2 +1,3 @@
 cmd/http-check/http-check
 cmd/http-check-server/http-check-server
+artifacts/
