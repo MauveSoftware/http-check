@@ -13,8 +13,8 @@ import (
 	"github.com/MauveSoftware/http-check/internal/server"
 	"github.com/sirupsen/logrus"
 
+	"github.com/alecthomas/kingpin/v2"
 	"google.golang.org/grpc"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (

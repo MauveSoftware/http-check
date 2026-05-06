@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/MauveSoftware/http-check/internal/api"
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
