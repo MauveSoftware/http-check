@@ -58,6 +58,7 @@ func (s *HTTPCheckServer) newHTTPClient(insecure bool) *http.Client {
 
 	return &http.Client{
 		Transport: tr,
+		Timeout:   s.reqTimeout,
 	}
 }
 

@@ -49,7 +49,7 @@ func main() {
 	logrus.Infof("Listen for connections on socket %s", *socketPath)
 	go logrus.Error(srv.Serve(lis))
 
-	termChan := make(chan os.Signal)
+	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 
 	<-termChan
