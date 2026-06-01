@@ -36,15 +36,15 @@ func (s *HTTPCheckServer) startWorkers() {
 	for i := 0; i < int(s.workerCount); i++ {
 		w := &worker{
 			id:         i + 1,
-			cl:         s.newHttpClient(false),
-			insecureCl: s.newHttpClient(true),
+			cl:         s.newHTTPClient(false),
+			insecureCl: s.newHTTPClient(true),
 			ch:         s.ch,
 		}
 		go w.run()
 	}
 }
 
-func (s *HTTPCheckServer) newHttpClient(insecure bool) *http.Client {
+func (s *HTTPCheckServer) newHTTPClient(insecure bool) *http.Client {
 	var tr = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:       s.reqTimeout,

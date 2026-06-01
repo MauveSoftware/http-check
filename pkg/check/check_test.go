@@ -37,7 +37,7 @@ func TestInvalidStausCode(t *testing.T) {
 	c := NewCheck(s.Client(), s.URL)
 	c.AssertStatusCodeIn([]uint32{200})
 	err := c.Run()
-	assert.EqualError(t, err, "Unexpected status code: 404 Not Found (expected: [200])")
+	assert.EqualError(t, err, "unexpected status code: 404 Not Found (expected: [200])")
 }
 
 func TestTimeoutHandling(t *testing.T) {
@@ -53,7 +53,7 @@ func TestTimeoutHandling(t *testing.T) {
 
 	c := NewCheck(cl, s.URL)
 	err := c.Run()
-	assert.EqualError(t, err, "Timeout exceeded (1ms)")
+	assert.EqualError(t, err, "timeout exceeded (1ms)")
 }
 
 func TestMissingHeader(t *testing.T) {
@@ -63,7 +63,7 @@ func TestMissingHeader(t *testing.T) {
 	c := NewCheck(s.Client(), s.URL)
 	c.AssertHeaderExists("X-Test", "Foo")
 	err := c.Run()
-	assert.EqualError(t, err, "Expected header 'X-Test' with value 'Foo'")
+	assert.EqualError(t, err, "expected header 'X-Test' with value 'Foo'")
 }
 
 func TestInvalidBody(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInvalidBody(t *testing.T) {
 	c := NewCheck(s.Client(), s.URL)
 	c.AssertBodyContains("Mauve")
 	err := c.Run()
-	assert.EqualError(t, err, "String 'Mauve' not found in body")
+	assert.EqualError(t, err, "string 'Mauve' not found in body")
 }
 
 func TestInvalidBodyWithRegex(t *testing.T) {
@@ -83,7 +83,7 @@ func TestInvalidBodyWithRegex(t *testing.T) {
 	c := NewCheck(s.Client(), s.URL)
 	c.AssertBodyMatches("^\\d{5}$")
 	err := c.Run()
-	assert.EqualError(t, err, "Regex '^\\d{5}$' does not match body")
+	assert.EqualError(t, err, "regex '^\\d{5}$' does not match body")
 }
 
 func TestValidBodyWithRegex(t *testing.T) {
@@ -150,7 +150,7 @@ func TestAssertCertificateExpireDaysWithoutCert(t *testing.T) {
 	err := c.validate(resp)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "No certificate returned")
+	assert.Equal(t, err.Error(), "no certificate returned")
 }
 
 func TestAssertCertificateExpireDaysWithSoonExpiringCert(t *testing.T) {
@@ -173,7 +173,7 @@ func TestAssertCertificateExpireDaysWithSoonExpiringCert(t *testing.T) {
 	err := c.validate(resp)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), fmt.Sprintf("Certificate expires on %v", notAfter))
+	assert.Equal(t, err.Error(), fmt.Sprintf("certificate expires on %v", notAfter))
 }
 
 func mockServer(status int, body string, headers http.Header) *httptest.Server {

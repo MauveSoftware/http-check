@@ -7,8 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/pkg/errors"
-
 	"github.com/MauveSoftware/http-check/internal/api"
 	"github.com/MauveSoftware/http-check/internal/server"
 	"github.com/sirupsen/logrus"
@@ -18,7 +16,7 @@ import (
 )
 
 const (
-	version = "0.3.4"
+	version = "0.3.5"
 )
 
 var (
@@ -63,7 +61,7 @@ func openSocket() (net.Listener, error) {
 	cleanupSocket()
 	lis, err := net.Listen("unix", *socketPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to listen on socket")
+		return nil, fmt.Errorf("faild to listen on socket: %w", err)
 	}
 
 	return lis, nil

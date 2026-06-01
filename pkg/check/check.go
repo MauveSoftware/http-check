@@ -3,13 +3,10 @@ package check
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Option configures a check
@@ -62,7 +59,7 @@ func NewCheck(client *http.Client, url string, opts ...Option) *Check {
 func (c *Check) Run() error {
 	req, err := http.NewRequest("GET", c.url, nil)
 	if err != nil {
-		return errors.Wrap(err, "Could not create request")
+		return fmt.Errorf("could not create request: %w", err)
 	}
 
 	req.SetBasicAuth(c.username, c.password)
@@ -71,7 +68,7 @@ func (c *Check) Run() error {
 	resp, err := c.client.Do(req)
 	if err != nil {
 		if strings.Contains(err.Error(), "Timeout") {
-			return fmt.Errorf("Timeout exceeded (%v)", c.client.Timeout)
+			return fmt.Errorf("timeout exceeded (%v)", c.client.Timeout)
 		}
 
 		return err
@@ -96,7 +93,7 @@ func (c *Check) AssertStatusCodeIn(codes []uint32) {
 			}
 		}
 
-		return fmt.Errorf("Unexpected status code: %s (expected: %v)", resp.Status, codes)
+		return fmt.Errorf("unexpected status code: %s (expected: %v)", resp.Status, codes)
 	})
 }
 
@@ -105,7 +102,7 @@ func (c *Check) AssertHeaderExists(name, value string) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
 		h := resp.Header.Get(name)
 		if h != value {
-			return fmt.Errorf("Expected header '%s' with value '%v'", name, value)
+			return fmt.Errorf("expected header '%s' with value '%v'", name, value)
 		}
 
 		return nil
@@ -115,13 +112,13 @@ func (c *Check) AssertHeaderExists(name, value string) {
 // AssertBodyContains tests if the body contains the specified string
 func (c *Check) AssertBodyContains(s string) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return errors.Wrap(err, "Could not read body")
+			return fmt.Errorf("could not read body: %w", err)
 		}
 
 		if !strings.Contains(string(b), s) {
-			return fmt.Errorf("String '%s' not found in body", s)
+			return fmt.Errorf("string '%s' not found in body", s)
 		}
 
 		return nil
@@ -131,18 +128,18 @@ func (c *Check) AssertBodyContains(s string) {
 // AssertBodyMatches tests if the body matches the specified regex
 func (c *Check) AssertBodyMatches(regex string) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return errors.Wrap(err, "Could not read body")
+			return fmt.Errorf("could not read body: %w", err)
 		}
 
 		r, err := regexp.Compile(regex)
 		if err != nil {
-			return errors.Wrap(err, "Invalid regex")
+			return fmt.Errorf("invalid regex: %w", err)
 		}
 
 		if !r.Match(b) {
-			return fmt.Errorf("Regex '%s' does not match body", regex)
+			return fmt.Errorf("regex '%s' does not match body", regex)
 		}
 
 		return nil
@@ -153,13 +150,13 @@ func (c *Check) AssertBodyMatches(regex string) {
 func (c *Check) AssertCertificateExpireDays(d time.Duration) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
 		if resp.TLS == nil || len(resp.TLS.PeerCertificates) == 0 {
-			return fmt.Errorf("No certificate returned")
+			return fmt.Errorf("no certificate returned")
 		}
 
 		first := resp.TLS.PeerCertificates[0]
 		min := time.Now().Add(d)
 		if !first.NotAfter.After(min) {
-			return fmt.Errorf("Certificate expires on %v", first.NotAfter)
+			return fmt.Errorf("certificate expires on %v", first.NotAfter)
 		}
 
 		return nil
