@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 )
@@ -87,10 +88,8 @@ func (c *Check) Run() error {
 // AssertStatusCodeIn tests if status code is in expected range
 func (c *Check) AssertStatusCodeIn(codes []uint32) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
-		for _, c := range codes {
-			if uint32(resp.StatusCode) == c {
-				return nil
-			}
+		if slices.Contains(codes, uint32(resp.StatusCode)) {
+			return nil
 		}
 
 		return fmt.Errorf("unexpected status code: %s (expected: %v)", resp.Status, codes)
