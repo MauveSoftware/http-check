@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
-	"time"
 
 	"github.com/MauveSoftware/http-check/internal/api"
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	grpcinsecure "google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -31,6 +30,7 @@ var (
 	certExpireDays     = kingpin.Flag("cert-min-expire-days", "Minimum number of days until certificate expiration").Uint32()
 	socketPath         = kingpin.Flag("socket-path", "Socket to use to communicate with the server performing the check").Default("/tmp/http-check.sock").String()
 	insecure           = kingpin.Flag("insecure", "Allow invalid TLS certificaets (e.g. self signed)").Default("false").Bool()
+	timeout            = kingpin.Flag("timeout", "Timeout for the check (should be less than the monitoring system's check timeout)").Default("55s").Duration()
 )
 
 func main() {
@@ -45,12 +45,10 @@ func main() {
 }
 
 func runCheck() {
-	conn, err := grpc.Dial(
-		*socketPath,
-		grpc.WithInsecure(),
-		grpc.WithDialer(func(addr string, timeout time.Duration) (net.Conn, error) {
-			return net.DialTimeout("unix", addr, timeout)
-		}))
+	conn, err := grpc.NewClient(
+		"unix:"+*socketPath,
+		grpc.WithTransportCredentials(grpcinsecure.NewCredentials()),
+	)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -71,9 +69,13 @@ func runCheck() {
 		Debug:              *verbose,
 		Insecure:           *insecure,
 	}
-	resp, err := c.Check(context.Background(), req)
+	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
+	defer cancel()
+
+	resp, err := c.Check(ctx, req)
 	if err != nil {
-		logrus.Fatal(err)
+		fmt.Printf("CRITICAL - %s\n", err)
+		os.Exit(2)
 	}
 
 	exitCode := 0
