@@ -52,7 +52,7 @@ func (s *HTTPCheckServer) newHTTPClient(insecure bool) *http.Client {
 		}).Dial,
 		TLSHandshakeTimeout: s.tlsTimeout,
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: insecure,
+			InsecureSkipVerify: insecure, // #nosec G402 -- opt-in via --insecure flag to allow self-signed certs
 		},
 	}
 

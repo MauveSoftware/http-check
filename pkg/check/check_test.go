@@ -13,9 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mock struct {
-}
-
 func TestValidReponse(t *testing.T) {
 	s := mockServer(200, "this is a valid response", http.Header{
 		"X-Test":  []string{"foo"},
@@ -44,7 +41,7 @@ func TestTimeoutHandling(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		time.Sleep(10 * time.Millisecond)
 		rw.WriteHeader(200)
-		rw.Write([]byte{})
+		_, _ = rw.Write([]byte{})
 	}))
 	defer s.Close()
 
@@ -183,6 +180,6 @@ func mockServer(status int, body string, headers http.Header) *httptest.Server {
 		}
 
 		rw.WriteHeader(status)
-		rw.Write([]byte(body))
+		_, _ = rw.Write([]byte(body))
 	}))
 }

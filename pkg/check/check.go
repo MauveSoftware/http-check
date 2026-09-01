@@ -74,12 +74,14 @@ func (c *Check) Run() error {
 
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if c.debug {
-		fmt.Fprintln(c.debugWriter, "Status: "+resp.Status)
-		resp.Header.Write(c.debugWriter)
-		fmt.Fprintln(c.debugWriter, "")
+		_, _ = fmt.Fprintln(c.debugWriter, "Status: "+resp.Status)
+		_ = resp.Header.Write(c.debugWriter)
+		_, _ = fmt.Fprintln(c.debugWriter, "")
 	}
 
 	return c.validate(resp)
@@ -88,7 +90,7 @@ func (c *Check) Run() error {
 // AssertStatusCodeIn tests if status code is in expected range
 func (c *Check) AssertStatusCodeIn(codes []uint32) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
-		if slices.Contains(codes, uint32(resp.StatusCode)) {
+		if slices.ContainsFunc(codes, func(code uint32) bool { return int(code) == resp.StatusCode }) {
 			return nil
 		}
 

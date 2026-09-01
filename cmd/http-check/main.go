@@ -52,7 +52,11 @@ func runCheck() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	c := api.NewHttpCheckServiceClient(conn)
 

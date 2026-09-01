@@ -39,7 +39,11 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	defer lis.Close()
+	defer func() {
+		if err := lis.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	srv := grpc.NewServer()
 	logrus.Infof("Starting %d workers", *workerCount)
