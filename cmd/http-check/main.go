@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/MauveSoftware/http-check/internal/api"
 	"github.com/alecthomas/kingpin/v2"
@@ -32,6 +34,8 @@ var (
 	insecure           = kingpin.Flag("insecure", "Allow invalid TLS certificaets (e.g. self signed)").Default("false").Bool()
 	timeout            = kingpin.Flag("timeout", "Timeout for the check (should be less than the monitoring system's check timeout)").Default("55s").Duration()
 	followRedirects    = kingpin.Flag("follow-redirects", "Follow HTTP redirects").Default("true").Bool()
+	expectedHeaders    = kingpin.Flag("expect-header", "Expected response header in format 'Name: value' (repeatable)").Strings()
+	expectedHdrRegexes = kingpin.Flag("expect-header-regex", "Expected response header matching regex in format 'Name: regex' (repeatable)").Strings()
 )
 
 func main() {
@@ -46,6 +50,16 @@ func main() {
 }
 
 func runCheck() {
+	headers, err := parseHeaders(*expectedHeaders)
+	if err != nil {
+		kingpin.Fatalf("%v", err)
+	}
+
+	headerRegexes, err := parseHeaderRegexes(*expectedHdrRegexes)
+	if err != nil {
+		kingpin.Fatalf("%v", err)
+	}
+
 	conn, err := grpc.NewClient(
 		"unix:"+*socketPath,
 		grpc.WithTransportCredentials(grpcinsecure.NewCredentials()),
@@ -62,18 +76,20 @@ func runCheck() {
 	c := api.NewHttpCheckServiceClient(conn)
 
 	req := &api.Request{
-		Protocol:             *protocol,
-		Host:                 *host,
-		Path:                 *path,
-		Username:             *username,
-		Password:             *password,
-		ExpectedStatusCode:   *expectedStatusCode,
-		ExpectedBody:         *expectedBody,
-		ExpectedBodyRegex:    *expectedBodyRegex,
-		CertExpireDays:       *certExpireDays,
-		Debug:                *verbose,
-		Insecure:             *insecure,
-		DoNotFollowRedirects: !*followRedirects,
+		Protocol:              *protocol,
+		Host:                  *host,
+		Path:                  *path,
+		Username:              *username,
+		Password:              *password,
+		ExpectedStatusCode:    *expectedStatusCode,
+		ExpectedBody:          *expectedBody,
+		ExpectedBodyRegex:     *expectedBodyRegex,
+		CertExpireDays:        *certExpireDays,
+		Debug:                 *verbose,
+		Insecure:              *insecure,
+		DoNotFollowRedirects:  !*followRedirects,
+		ExpectedHeaders:       headers,
+		ExpectedHeaderRegexes: headerRegexes,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()
@@ -99,6 +115,41 @@ func runCheck() {
 	}
 
 	os.Exit(exitCode)
+}
+
+// parseHeaders parses headers in curl style ("Name: value"). Only the first colon separates
+// name and value, so values like URLs may contain colons. Header names must not contain
+// whitespace (RFC 9110), which also catches a missing colon in "Location https://..."
+func parseHeaders(raw []string) (map[string]string, error) {
+	headers := make(map[string]string, len(raw))
+	for _, h := range raw {
+		name, value, found := strings.Cut(h, ":")
+		name = strings.TrimSpace(name)
+		if !found || name == "" || strings.ContainsAny(name, " \t") {
+			return nil, fmt.Errorf("invalid header %q, expected format 'Name: value'", h)
+		}
+
+		headers[name] = strings.TrimSpace(value)
+	}
+
+	return headers, nil
+}
+
+// parseHeaderRegexes parses headers like parseHeaders and validates the regexes,
+// so invalid patterns are reported before the check is sent to the server
+func parseHeaderRegexes(raw []string) (map[string]string, error) {
+	headers, err := parseHeaders(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	for name, regex := range headers {
+		if _, err := regexp.Compile(regex); err != nil {
+			return nil, fmt.Errorf("invalid regex for header %q: %w", name, err)
+		}
+	}
+
+	return headers, nil
 }
 
 func printVersion() {

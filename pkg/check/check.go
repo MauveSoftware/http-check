@@ -103,7 +103,29 @@ func (c *Check) AssertHeaderExists(name, value string) {
 	c.assertions = append(c.assertions, func(resp *http.Response) error {
 		h := resp.Header.Get(name)
 		if h != value {
-			return fmt.Errorf("expected header '%s' with value '%v'", name, value)
+			return fmt.Errorf("expected header '%s' with value '%v' (got: '%v')", name, value, h)
+		}
+
+		return nil
+	})
+}
+
+// AssertHeaderMatches tests if a specified header exists and its value matches the regex
+func (c *Check) AssertHeaderMatches(name, regex string) {
+	c.assertions = append(c.assertions, func(resp *http.Response) error {
+		r, err := regexp.Compile(regex)
+		if err != nil {
+			return fmt.Errorf("invalid regex: %w", err)
+		}
+
+		// checked explicitly, since patterns like ".*" would otherwise match a missing header
+		if len(resp.Header.Values(name)) == 0 {
+			return fmt.Errorf("header '%s' not found", name)
+		}
+
+		h := resp.Header.Get(name)
+		if !r.MatchString(h) {
+			return fmt.Errorf("regex '%s' does not match header '%s' (got: '%s')", regex, name, h)
 		}
 
 		return nil

@@ -22,21 +22,23 @@ const (
 )
 
 type Request struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Protocol             string                 `protobuf:"bytes,1,opt,name=protocol,proto3" json:"protocol,omitempty"`
-	Host                 string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	Path                 string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	Username             string                 `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
-	Password             string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
-	ExpectedStatusCode   []uint32               `protobuf:"varint,6,rep,packed,name=expected_status_code,json=expectedStatusCode,proto3" json:"expected_status_code,omitempty"`
-	ExpectedBody         string                 `protobuf:"bytes,7,opt,name=expected_body,json=expectedBody,proto3" json:"expected_body,omitempty"`
-	ExpectedBodyRegex    string                 `protobuf:"bytes,8,opt,name=expected_body_regex,json=expectedBodyRegex,proto3" json:"expected_body_regex,omitempty"`
-	CertExpireDays       uint32                 `protobuf:"varint,9,opt,name=cert_expire_days,json=certExpireDays,proto3" json:"cert_expire_days,omitempty"`
-	Debug                bool                   `protobuf:"varint,10,opt,name=debug,proto3" json:"debug,omitempty"`
-	Insecure             bool                   `protobuf:"varint,11,opt,name=insecure,proto3" json:"insecure,omitempty"`
-	DoNotFollowRedirects bool                   `protobuf:"varint,12,opt,name=do_not_follow_redirects,json=doNotFollowRedirects,proto3" json:"do_not_follow_redirects,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Protocol              string                 `protobuf:"bytes,1,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	Host                  string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	Path                  string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	Username              string                 `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
+	Password              string                 `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
+	ExpectedStatusCode    []uint32               `protobuf:"varint,6,rep,packed,name=expected_status_code,json=expectedStatusCode,proto3" json:"expected_status_code,omitempty"`
+	ExpectedBody          string                 `protobuf:"bytes,7,opt,name=expected_body,json=expectedBody,proto3" json:"expected_body,omitempty"`
+	ExpectedBodyRegex     string                 `protobuf:"bytes,8,opt,name=expected_body_regex,json=expectedBodyRegex,proto3" json:"expected_body_regex,omitempty"`
+	CertExpireDays        uint32                 `protobuf:"varint,9,opt,name=cert_expire_days,json=certExpireDays,proto3" json:"cert_expire_days,omitempty"`
+	Debug                 bool                   `protobuf:"varint,10,opt,name=debug,proto3" json:"debug,omitempty"`
+	Insecure              bool                   `protobuf:"varint,11,opt,name=insecure,proto3" json:"insecure,omitempty"`
+	DoNotFollowRedirects  bool                   `protobuf:"varint,12,opt,name=do_not_follow_redirects,json=doNotFollowRedirects,proto3" json:"do_not_follow_redirects,omitempty"`
+	ExpectedHeaders       map[string]string      `protobuf:"bytes,13,rep,name=expected_headers,json=expectedHeaders,proto3" json:"expected_headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ExpectedHeaderRegexes map[string]string      `protobuf:"bytes,14,rep,name=expected_header_regexes,json=expectedHeaderRegexes,proto3" json:"expected_header_regexes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Request) Reset() {
@@ -153,6 +155,20 @@ func (x *Request) GetDoNotFollowRedirects() bool {
 	return false
 }
 
+func (x *Request) GetExpectedHeaders() map[string]string {
+	if x != nil {
+		return x.ExpectedHeaders
+	}
+	return nil
+}
+
+func (x *Request) GetExpectedHeaderRegexes() map[string]string {
+	if x != nil {
+		return x.ExpectedHeaderRegexes
+	}
+	return nil
+}
+
 type Response struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -217,7 +233,7 @@ var File_service_proto protoreflect.FileDescriptor
 
 const file_service_proto_rawDesc = "" +
 	"\n" +
-	"\rservice.proto\x12\x03api\"\x9f\x03\n" +
+	"\rservice.proto\x12\x03api\"\xdc\x05\n" +
 	"\aRequest\x12\x1a\n" +
 	"\bprotocol\x18\x01 \x01(\tR\bprotocol\x12\x12\n" +
 	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
@@ -231,7 +247,15 @@ const file_service_proto_rawDesc = "" +
 	"\x05debug\x18\n" +
 	" \x01(\bR\x05debug\x12\x1a\n" +
 	"\binsecure\x18\v \x01(\bR\binsecure\x125\n" +
-	"\x17do_not_follow_redirects\x18\f \x01(\bR\x14doNotFollowRedirects\"c\n" +
+	"\x17do_not_follow_redirects\x18\f \x01(\bR\x14doNotFollowRedirects\x12L\n" +
+	"\x10expected_headers\x18\r \x03(\v2!.api.Request.ExpectedHeadersEntryR\x0fexpectedHeaders\x12_\n" +
+	"\x17expected_header_regexes\x18\x0e \x03(\v2'.api.Request.ExpectedHeaderRegexesEntryR\x15expectedHeaderRegexes\x1aB\n" +
+	"\x14ExpectedHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aH\n" +
+	"\x1aExpectedHeaderRegexesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"c\n" +
 	"\bResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12#\n" +
@@ -251,19 +275,23 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_service_proto_goTypes = []any{
 	(*Request)(nil),  // 0: api.Request
 	(*Response)(nil), // 1: api.Response
+	nil,              // 2: api.Request.ExpectedHeadersEntry
+	nil,              // 3: api.Request.ExpectedHeaderRegexesEntry
 }
 var file_service_proto_depIdxs = []int32{
-	0, // 0: api.HttpCheckService.Check:input_type -> api.Request
-	1, // 1: api.HttpCheckService.Check:output_type -> api.Response
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: api.Request.expected_headers:type_name -> api.Request.ExpectedHeadersEntry
+	3, // 1: api.Request.expected_header_regexes:type_name -> api.Request.ExpectedHeaderRegexesEntry
+	0, // 2: api.HttpCheckService.Check:input_type -> api.Request
+	1, // 3: api.HttpCheckService.Check:output_type -> api.Response
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }
@@ -277,7 +305,7 @@ func file_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

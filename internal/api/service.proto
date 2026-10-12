@@ -17,6 +17,8 @@ message Request {
   bool debug = 10;
   bool insecure = 11;
   bool do_not_follow_redirects = 12;
+  map<string, string> expected_headers = 13;
+  map<string, string> expected_header_regexes = 14;
 }
 
 message Response {

@@ -82,6 +82,14 @@ func (w *worker) checkForRequest(req *api.Request, out io.Writer) *check.Check {
 		c.AssertStatusCodeIn(req.ExpectedStatusCode)
 	}
 
+	for name, value := range req.ExpectedHeaders {
+		c.AssertHeaderExists(name, value)
+	}
+
+	for name, regex := range req.ExpectedHeaderRegexes {
+		c.AssertHeaderMatches(name, regex)
+	}
+
 	if len(req.ExpectedBody) > 0 {
 		c.AssertBodyContains(req.ExpectedBody)
 	}

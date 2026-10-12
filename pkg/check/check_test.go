@@ -60,7 +60,65 @@ func TestMissingHeader(t *testing.T) {
 	c := NewCheck(s.Client(), s.URL)
 	c.AssertHeaderExists("X-Test", "Foo")
 	err := c.Run()
-	assert.EqualError(t, err, "expected header 'X-Test' with value 'Foo'")
+	assert.EqualError(t, err, "expected header 'X-Test' with value 'Foo' (got: '')")
+}
+
+func TestHeaderMatches(t *testing.T) {
+	s := mockServer(301, "", http.Header{
+		"Location": []string{"https://example.com/en/start"},
+	})
+	defer s.Close()
+
+	tests := []struct {
+		name        string
+		header      string
+		regex       string
+		expectedErr string
+	}{
+		{
+			name:   "matching value",
+			header: "Location",
+			regex:  "^https://example\\.com/en/",
+		},
+		{
+			name:        "non matching value",
+			header:      "Location",
+			regex:       "^https://example\\.com/de/",
+			expectedErr: "regex '^https://example\\.com/de/' does not match header 'Location' (got: 'https://example.com/en/start')",
+		},
+		{
+			name:        "missing header fails even if regex matches empty value",
+			header:      "X-Missing",
+			regex:       ".*",
+			expectedErr: "header 'X-Missing' not found",
+		},
+		{
+			name:        "invalid regex",
+			header:      "Location",
+			regex:       "[0-9]++",
+			expectedErr: "invalid regex: error parsing regexp: invalid nested repetition operator: `++`",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cl := s.Client()
+			cl.CheckRedirect = func(*http.Request, []*http.Request) error {
+				return http.ErrUseLastResponse
+			}
+
+			c := NewCheck(cl, s.URL)
+			c.AssertHeaderMatches(test.header, test.regex)
+			err := c.Run()
+
+			if test.expectedErr == "" {
+				assert.NoError(t, err, "header %s should match %q", test.header, test.regex)
+				return
+			}
+
+			assert.EqualError(t, err, test.expectedErr, "unexpected result for header %s and regex %q", test.header, test.regex)
+		})
+	}
 }
 
 func TestInvalidBody(t *testing.T) {
