@@ -72,6 +72,10 @@ func (w *worker) checkForRequest(req *api.Request, out io.Writer) *check.Check {
 		cl = w.insecureCl
 	}
 
+	if req.DoNotFollowRedirects {
+		cl = withoutRedirects(cl)
+	}
+
 	c := check.NewCheck(cl, url, opts...)
 
 	if len(req.ExpectedStatusCode) > 0 {
@@ -91,4 +95,15 @@ func (w *worker) checkForRequest(req *api.Request, out io.Writer) *check.Check {
 	}
 
 	return c
+}
+
+// withoutRedirects returns a shallow copy of cl sharing its transport (and connection pool),
+// so the shared client used by other requests is not modified
+func withoutRedirects(cl *http.Client) *http.Client {
+	c := *cl
+	c.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	return &c
 }

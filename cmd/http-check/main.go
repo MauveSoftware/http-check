@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "0.3.6"
+	version = "0.4.0"
 )
 
 var (
@@ -31,6 +31,7 @@ var (
 	socketPath         = kingpin.Flag("socket-path", "Socket to use to communicate with the server performing the check").Default("/tmp/http-check.sock").String()
 	insecure           = kingpin.Flag("insecure", "Allow invalid TLS certificaets (e.g. self signed)").Default("false").Bool()
 	timeout            = kingpin.Flag("timeout", "Timeout for the check (should be less than the monitoring system's check timeout)").Default("55s").Duration()
+	followRedirects    = kingpin.Flag("follow-redirects", "Follow HTTP redirects").Default("true").Bool()
 )
 
 func main() {
@@ -61,17 +62,18 @@ func runCheck() {
 	c := api.NewHttpCheckServiceClient(conn)
 
 	req := &api.Request{
-		Protocol:           *protocol,
-		Host:               *host,
-		Path:               *path,
-		Username:           *username,
-		Password:           *password,
-		ExpectedStatusCode: *expectedStatusCode,
-		ExpectedBody:       *expectedBody,
-		ExpectedBodyRegex:  *expectedBodyRegex,
-		CertExpireDays:     *certExpireDays,
-		Debug:              *verbose,
-		Insecure:           *insecure,
+		Protocol:             *protocol,
+		Host:                 *host,
+		Path:                 *path,
+		Username:             *username,
+		Password:             *password,
+		ExpectedStatusCode:   *expectedStatusCode,
+		ExpectedBody:         *expectedBody,
+		ExpectedBodyRegex:    *expectedBodyRegex,
+		CertExpireDays:       *certExpireDays,
+		Debug:                *verbose,
+		Insecure:             *insecure,
+		DoNotFollowRedirects: !*followRedirects,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()

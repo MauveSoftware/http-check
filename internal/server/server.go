@@ -12,6 +12,8 @@ import (
 
 // HTTPCheckServer runs HTTP checks. It provides an gRPC interface to receive check tasks
 type HTTPCheckServer struct {
+	api.UnimplementedHttpCheckServiceServer
+
 	workerCount uint32
 	reqTimeout  time.Duration
 	tlsTimeout  time.Duration
