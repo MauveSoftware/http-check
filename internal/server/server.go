@@ -48,10 +48,10 @@ func (s *HTTPCheckServer) startWorkers() {
 
 func (s *HTTPCheckServer) newHTTPClient(insecure bool) *http.Client {
 	var tr = &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:       s.reqTimeout,
 			FallbackDelay: 100 * time.Millisecond,
-		}).Dial,
+		}).DialContext,
 		TLSHandshakeTimeout: s.tlsTimeout,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: insecure, // #nosec G402 -- opt-in via --insecure flag to allow self-signed certs
